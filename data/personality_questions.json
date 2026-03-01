@@ -1,0 +1,14 @@
+{
+  "questions": [
+    {"id": 1, "text": "I am the life of the party", "category": "Extraversion"},
+    {"id": 2, "text": "I feel comfortable around people", "category": "Extraversion"},
+    {"id": 3, "text": "I believe that winning is everything", "category": "Agreeableness"},
+    {"id": 4, "text": "I make friends easily", "category": "Extraversion"},
+    {"id": 5, "text": "I take time out for others", "category": "Agreeableness"},
+    {"id": 6, "text": "I am interested in people", "category": "Extraversion"},
+    {"id": 7, "text": "I insult people", "category": "Agreeableness"},
+    {"id": 8, "text": "I am often quiet around strangers", "category": "Introversion"},
+    {"id": 9, "text": "I like to make up my own mind", "category": "Openness"},
+    {"id": 10, "text": "I am easily disturbed", "category": "Neuroticism"}
+  ]
+}

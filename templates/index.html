@@ -3,135 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personality Selector</title>
+    <title>Personality Predictor</title>
     <style>
-        /* General Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-            color: #333;
         }
-
-        /* Heading Style */
-        h1 {
-            font-size: 28px;
-            font-weight: bold;
-            color: #4f46e5;
+        .container { max-width: 600px; width: 100%; }
+        .header {
             text-align: center;
-            margin-bottom: 20px;
+            color: white;
+            margin-bottom: 40px;
         }
-
-        /* Label Styles */
-        label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #555;
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95em;
         }
-
-        /* Input Fields and Select Styles */
-        input, select {
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        input[type="range"] {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: border 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        input:focus, select:focus {
-            border: 1px solid #4f46e5;
-            box-shadow: 0 0 5px rgba(79, 70, 229, 0.5);
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
             outline: none;
+            -webkit-appearance: none;
         }
-
-        /* Button Styles */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
         button {
-            display: block;
             width: 100%;
             padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #4f46e5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            transition: transform 0.2s;
         }
-
-        button:hover {
-            background-color: #4338ca;
+        button:hover { transform: translateY(-2px); }
+        .result {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s;
         }
-
-        button:active {
-            transform: translateY(2px);
+        .result.show { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Form Styling */
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            margin: 0 auto;
+        .type-badge {
+            display: inline-block;
+            padding: 20px 40px;
+            border-radius: 10px;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .type-name {
+            font-size: 1.8em;
+            color: #333;
+            margin: 20px 0;
+        }
+        .strengths {
+            margin-top: 20px;
             text-align: left;
         }
-
-        /* Responsive Design */
-        @media (max-width: 500px) {
-            form {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
+        .strengths h3 { color: #667eea; margin-bottom: 10px; }
+        .strengths ul {
+            list-style: none;
+            padding-left: 0;
         }
+        .strengths li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+        }
+        .strengths li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .progress { display: none; text-align: center; color: #667eea; margin: 20px 0; }
+        .progress.show { display: block; }
     </style>
 </head>
 <body>
-    <h1>Check Your Personality</h1>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Personality Predictor</h1>
+            <p>Discover your MBTI personality type</p>
+        </div>
+        <div class="card">
+            <form id="personalityForm">
+                <div id="questionsContainer"></div>
+                <button type="submit">Analyze My Personality</button>
+            </form>
+            <div class="progress" id="progress">
+                <p>Analyzing your responses...</p>
+            </div>
+            <div class="result" id="result">
+                <div class="type-badge" id="typeBadge"></div>
+                <div class="type-name" id="typeName"></div>
+                <div class="strengths">
+                    <h3>Key Strengths:</h3>
+                    <ul id="strengthsList"></ul>
+                </div>
+                <button onclick="document.location.reload()">Take Test Again</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Form for Input -->
-    <form id="personalityForm" action="/submit" method="POST">
-        <!-- Name Input -->
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+    <script>
+        let questions = [];
 
-        <!-- Email Input -->
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/api/questions');
+                const data = await response.json();
+                questions = data.questions;
+                renderQuestions();
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            }
+        }
 
-        <!-- Personality Dropdown -->
-        <label for="personality">Select Personality:</label>
-        <select id="personality" name="personality" required>
-            <option value="" disabled selected>Select your personality type</option>
-            <option value="INTJ">INTJ</option>
-            <option value="INTP">INTP</option>
-            <option value="ENTJ">ENTJ</option>
-            <option value="ENTP">ENTP</option>
-            <option value="INFJ">INFJ</option>
-            <option value="INFP">INFP</option>
-            <option value="ENFJ">ENFJ</option>
-            <option value="ENFP">ENFP</option>
-            <option value="ISTJ">ISTJ</option>
-            <option value="ISFJ">ISFJ</option>
-            <option value="ESTJ">ESTJ</option>
-            <option value="ESFJ">ESFJ</option>
-            <option value="ISTP">ISTP</option>
-            <option value="ISFP">ISFP</option>
-            <option value="ESTP">ESTP</option>
-            <option value="ESFP">ESFP</option>
-        </select>
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            questions.forEach((q, index) => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                group.innerHTML = `
+                    <label>${index + 1}. ${q.text}</label>
+                    <div class="scale-labels">
+                        <span>Disagree</span>
+                        <span>Neutral</span>
+                        <span>Agree</span>
+                    </div>
+                    <input type="range" name="q${index}" min="1" max="5" value="3" required>
+                `;
+                container.appendChild(group);
+            });
+        }
 
-        <!-- Button -->
-        <button type="submit">Check</button>
-    </form>
+        document.getElementById('personalityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(document.getElementById('personalityForm'));
+            const responses = [];
+            questions.forEach((_, index) => {
+                responses.push(parseInt(formData.get(`q${index}`)));
+            });
+
+            document.getElementById('progress').classList.add('show');
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ responses })
+                });
+
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error analyzing your personality. Please try again.');
+            } finally {
+                document.getElementById('progress').classList.remove('show');
+            }
+        });
+
+        function displayResult(data) {
+            const badge = document.getElementById('typeBadge');
+            badge.textContent = data.mbti_type;
+            badge.style.backgroundColor = data.personality.color;
+
+            document.getElementById('typeName').textContent = data.personality.name;
+
+            const strengthsList = document.getElementById('strengthsList');
+            strengthsList.innerHTML = '';
+            (data.personality.strengths || []).forEach(strength => {
+                const li = document.createElement('li');
+                li.textContent = strength;
+                strengthsList.appendChild(li);
+            });
+
+            document.getElementById('personalityForm').style.display = 'none';
+            document.getElementById('result').classList.add('show');
+        }
+
+        loadQuestions();
+    </script>
 </body>
 </html>

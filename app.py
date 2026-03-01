@@ -1,66 +1,89 @@
-from flask import Flask, render_template, request, redirect
-import mysql.connector
+from flask import Flask, render_template, request, jsonify
+import json
+from pathlib import Path
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
-# Function to connect to MySQL database
-def connect_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",  # Replace with your MySQL username
-        password="duggi11#",  # Replace with your MySQL password
-        database="personality_db"  # Replace with your database name
-    )
+# Load personality questions at startup
+PERSONALITY_QUESTIONS = [
+    {"id": 1, "text": "I am the life of the party", "category": "Extraversion"},
+    {"id": 2, "text": "I feel comfortable around people", "category": "Extraversion"},
+    {"id": 3, "text": "I believe that winning is everything", "category": "Agreeableness"},
+    {"id": 4, "text": "I make friends easily", "category": "Extraversion"},
+    {"id": 5, "text": "I take time out for others", "category": "Agreeableness"},
+    {"id": 6, "text": "I am interested in people", "category": "Extraversion"},
+    {"id": 7, "text": "I insult people", "category": "Agreeableness"},
+    {"id": 8, "text": "I am often quiet around strangers", "category": "Extraversion"},
+    {"id": 9, "text": "I like to make up my own mind", "category": "Openness"},
+    {"id": 10, "text": "I am easily disturbed", "category": "Neuroticism"},
+]
 
-# Route to display the form
+PERSONALITY_TYPES = {
+    'ISTJ': {'name': 'The Logistician', 'color': '#4A90E2', 'strengths': ['Responsible', 'Dependable', 'Loyal']},
+    'ISFJ': {'name': 'The Defender', 'color': '#7B68EE', 'strengths': ['Supportive', 'Loyal', 'Hardworking']},
+    'INFJ': {'name': 'The Advocate', 'color': '#50C878', 'strengths': ['Insightful', 'Inspiring', 'Principled']},
+    'INTJ': {'name': 'The Architect', 'color': '#FF6B6B', 'strengths': ['Strategic', 'Independent', 'Principled']},
+    'ISTP': {'name': 'The Virtuoso', 'color': '#FFB84D', 'strengths': ['Strategic', 'Pragmatic', 'Creative']},
+    'ISFP': {'name': 'The Adventurer', 'color': '#A78BFA', 'strengths': ['Sensitive', 'Aesthetic', 'Flexible']},
+    'INFP': {'name': 'The Mediator', 'color': '#06B6D4', 'strengths': ['Idealistic', 'Loyal', 'Values-driven']},
+    'INTP': {'name': 'The Logician', 'color': '#EC4899', 'strengths': ['Analytical', 'Original', 'Independent']},
+    'ESTP': {'name': 'The Entrepreneur', 'color': '#F59E0B', 'strengths': ['Bold', 'Pragmatic', 'Natural leader']},
+    'ESFP': {'name': 'The Entertainer', 'color': '#8B5CF6', 'strengths': ['Outgoing', 'Spontaneous', 'Friendly']},
+    'ENFP': {'name': 'The Campaigner', 'color': '#10B981', 'strengths': ['Enthusiastic', 'Creative', 'Social']},
+    'ENTP': {'name': 'The Debater', 'color': '#EF4444', 'strengths': ['Quick-witted', 'Knowledgeable', 'Good listener']},
+    'ESTJ': {'name': 'The Executive', 'color': '#3B82F6', 'strengths': ['Efficient', 'Responsible', 'Strong leader']},
+    'ESFJ': {'name': 'The Consul', 'color': '#F87171', 'strengths': ['Supportive', 'Responsible', 'Natural leader']},
+    'ENFJ': {'name': 'The Protagonist', 'color': '#34D399', 'strengths': ['Inspiring', 'Responsible', 'Caring']},
+    'ENTJ': {'name': 'The Commander', 'color': '#FBBF24', 'strengths': ['Strategic', 'Focused', 'Leader']},
+}
+
 @app.route('/')
 def index():
-    return render_template('index.html')  # Ensure index.html matches your form's file name
+    return render_template('index.html', questions=PERSONALITY_QUESTIONS)
 
-# Route to handle form submission
-@app.route('/submit', methods=['POST'])
-def submit():
-    try:
-        # Retrieve form data
-        name = request.form['name']
-        email = request.form['email']
-        personality = request.form['personality']
+@app.route('/api/questions')
+def get_questions():
+    return jsonify({'questions': PERSONALITY_QUESTIONS})
 
-        # Insert the data into MySQL database
-        conn = connect_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO users (name, email, personality) VALUES (%s, %s, %s)",
-            (name, email, personality)
-        )
-        conn.commit()
-        conn.close()
-
-        # Redirect to the specific personality page
-        personality_links = {
-            "INTJ": "https://www.16personalities.com/intj-personality",
-            "INTP": "https://www.16personalities.com/intp-personality",
-            "ENTJ": "https://www.16personalities.com/entj-personality",
-            "ENTP": "https://www.16personalities.com/entp-personality",
-            "INFJ": "https://www.16personalities.com/infj-personality",
-            "INFP": "https://www.16personalities.com/infp-personality",
-            "ENFJ": "https://www.16personalities.com/enfj-personality",
-            "ENFP": "https://www.16personalities.com/enfp-personality",
-            "ISTJ": "https://www.16personalities.com/istj-personality",
-            "ISFJ": "https://www.16personalities.com/isfj-personality",
-            "ESTJ": "https://www.16personalities.com/estj-personality",
-            "ESFJ": "https://www.16personalities.com/esfj-personality",
-            "ISTP": "https://www.16personalities.com/istp-personality",
-            "ISFP": "https://www.16personalities.com/isfp-personality",
-            "ESTP": "https://www.16personalities.com/estp-personality",
-            "ESFP": "https://www.16personalities.com/esfp-personality"
+@app.route('/api/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    responses = data.get('responses', [])
+    
+    if len(responses) == 0:
+        return jsonify({'error': 'No responses provided'}), 400
+    
+    avg_response = sum(responses) / len(responses)
+    
+    mbti_types_list = list(PERSONALITY_TYPES.keys())
+    type_index = min(int(avg_response * 1.6), len(mbti_types_list) - 1)
+    mbti_type = mbti_types_list[type_index]
+    
+    personality_info = PERSONALITY_TYPES.get(mbti_type, {})
+    
+    return jsonify({
+        'mbti_type': mbti_type,
+        'personality': {
+            'type': mbti_type,
+            'name': personality_info.get('name', 'Unknown'),
+            'color': personality_info.get('color', '#000000'),
+            'strengths': personality_info.get('strengths', []),
         }
+    })
 
-        return redirect(personality_links.get(personality, '/'))
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return "An error occurred while processing your request.", 500
+@app.route('/api/personality/<mbti_type>')
+def get_personality_details(mbti_type):
+    if mbti_type not in PERSONALITY_TYPES:
+        return jsonify({'error': 'Unknown personality type'}), 404
+    
+    personality = PERSONALITY_TYPES[mbti_type]
+    return jsonify({
+        'type': mbti_type,
+        'name': personality['name'],
+        'color': personality['color'],
+        'strengths': personality.get('strengths', []),
+        'description': f"MBTI Type {mbti_type}: {personality['name']}"
+    })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
